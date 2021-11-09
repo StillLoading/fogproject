@@ -2034,6 +2034,7 @@ EOF
                     a2dissite "000-default" >>$workingdir/error_logs/fog_error_${version}.log 2>&1
                 fi
 		        if [[ $osid -eq 4 ]]; then
+                    a2enmod rewrite >>$workingdir/error_logs/fog_error_${version}.log 2>&1
 		            a2enmod proxy >>$workingdir/error_logs/fog_error_${version}.log 2>&1
 		            a2enmod proxy_ajp >>$workingdir/error_logs/fog_error_${version}.log 2>&1
 		            a2enmod fcgid >>$workingdir/error_logs/fog_error_${version}.log 2>&1
