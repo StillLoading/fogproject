@@ -929,6 +929,7 @@ displayOSChoices() {
                 echo "          1) Redhat Based Linux (Redhat, CentOS, Mageia)"
                 echo "          2) Debian Based Linux (Debian, Ubuntu, Kubuntu, Edubuntu)"
                 echo "          3) Arch Linux"
+		echo "          4) SUSE Based Linux (Currently openSUSE only)"
                 echo
                 echo -n "  Choice: [$strSuggestedOS] "
                 read osid
@@ -937,7 +938,7 @@ displayOSChoices() {
                         osid=$strSuggestedOS
                         break
                         ;;
-                    1|2|3)
+                    1|2|3|4)
                         break
                         ;;
                     *)
@@ -967,6 +968,12 @@ doOSSpecificIncludes() {
             echo -e "\n\n  Starting Arch Installation\n\n"
             osname="Arch"
             . ../lib/arch/config.sh
+            systemctl="yes"
+            ;;
+        4)
+            echo -e "\n\n  Starting SUSE Installation\n\n"
+            osname="suse"
+            . ../lib/suse/config.sh
             systemctl="yes"
             ;;
         *)
@@ -1387,7 +1394,11 @@ configureUsers() {
             echo "Skipped"
         fi
     else
-        useradd -s "/bin/bash" -d "/home/${username}" -m ${username} >>$workingdir/error_logs/fog_error_${version}.log 2>&1
+	if [[ $osid -eq 4 ]]; then
+            useradd -U -s "/bin/bash" -d "/home/${username}" -m ${username} >>$workingdir/error_logs/fog_error_${version}.log 2>&1
+	else
+            useradd -s "/bin/bash" -d "/home/${username}" -m ${username} >>$workingdir/error_logs/fog_error_${version}.log 2>&1
+        fi
         errorStat $?
     fi
     if [[ ! -d /home/$username ]]; then
@@ -1972,6 +1983,9 @@ EOF
                     3)
                         phpfpmconf='/etc/php/php-fpm.d/www.conf'
                         ;;
+		    4)
+			phpfpmconf="/etc/php$php_ver/fpm/php-fpm.d/www.conf"
+			;;
                 esac
                 if [[ -n $phpfpmconf ]]; then
                     sed -i 's/listen = .*/listen = 127.0.0.1:9000/g' $phpfpmconf >>$workingdir/error_logs/fog_error_${version}.log 2>&1
@@ -1990,6 +2004,12 @@ EOF
                     a2ensite "001-fog" >>$workingdir/error_logs/fog_error_${version}.log 2>&1
                     a2dissite "000-default" >>$workingdir/error_logs/fog_error_${version}.log 2>&1
                 fi
+		if [[ $osid -eq 4]]; then
+		    a2enmod proxy >>$workingdir/error_logs/fog_error_${version}.log 2>&1
+		    a2enmod proxy_ajp >>$workingdir/error_logs/fog_error_${version}.log 2>&1
+		    a2enmod fcgid >>$workingdir/error_logs/fog_error_${version}.log 2>&1
+		    a2enmod proxy_fcgi >>$workingdir/error_logs/fog_error_${version}.log 2>&1
+	        fi
             ;;
     esac
     dots "Starting and checking status of web services"
@@ -2124,6 +2144,16 @@ configureHttpd() {
         sed -i 's/;extension=zip/extension=zip/g' $phpini >>$workingdir/error_logs/fog_error_${version}.log 2>&1
         sed -i 's/$open_basedir\ =/;open_basedir\ =/g' $phpini >>$workingdir/error_logs/fog_error_${version}.log 2>&1
     fi
+    if [[ $osid = 4 ]]; then
+    	# copy default configs
+	if [[ ! -f "/etc/php$php_ver/fpm/php-fpm.conf"]]; then
+	    cp "/etc/php$php_ver/fpm/php-fpm.conf.default" "/etc/php$php_ver/fpm/php-fpm.conf"
+	fi
+	if [[ ! -f "/etc/php$php_ver/fpm/php-fpm.d/www.conf"]]; then
+	    cp "/etc/php$php_ver/fpm/php-fpm.d/www.conf.default" "/etc/php$php_ver/fpm/php-fpm.d/www.conf"
+	fi
+    fi
+
     sed -i 's/post_max_size\ \=\ 8M/post_max_size\ \=\ 3000M/g' $phpini >>$workingdir/error_logs/fog_error_${version}.log 2>&1
     sed -i 's/upload_max_filesize\ \=\ 2M/upload_max_filesize\ \=\ 3000M/g' $phpini >>$workingdir/error_logs/fog_error_${version}.log 2>&1
     sed -i 's/.*max_input_vars\ \=.*$/max_input_vars\ \=\ 250000/g' $phpini >>$workingdir/error_logs/fog_error_${version}.log 2>&1
@@ -2327,7 +2357,7 @@ die();
         fi
     fi
     dots "Enabling apache and fpm services on boot"
-    if [[ $osid -eq 2 ]]; then
+    if [[ $osid -eq 2 ]] || [[ $osid -eq 4 ]]; then
         if [[ $systemctl == yes ]]; then
             systemctl enable apache2 >>$workingdir/error_logs/fog_error_${version}.log 2>&1
             systemctl enable $phpfpm >>$workingdir/error_logs/fog_error_${version}.log 2>&1
