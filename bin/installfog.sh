@@ -360,6 +360,9 @@ if [[ ! $exitcode -eq 0 ]]; then
         *[Aa][Rr][Cc][Hh]*)
             pacman -Sy --noconfirm lsb-release >>$workingdir/error_logs/fog_error_${version}.log 2>&1
             ;;
+        *[Oo][Pp][Ee][Nn][Ss][Uu][Ss][Ee]*)
+            zypper --non-interactive install lsb-release >>$workingdir/error_logs/fog_error_${version}.log 2>&1
+            ;;
     esac
 fi
 [[ -z $OSVersion ]] && OSVersion=$(lsb_release -r| awk -F'[^0-9]*' /^[Rr]elease\([^.]*\).*/'{print $2}')
