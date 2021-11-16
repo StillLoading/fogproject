@@ -56,6 +56,15 @@ if [[ -z $webdirdest ]]; then
         webdirdest="${docroot}/"
     fi
 fi
+
+# set transactional server flag
+command -v transactional-update >>$workingdir/error_logs/fog_error_${version}.log 2>&1
+if [[ $? -eq 0 ]]; then
+    [[ -z $is_transactional ]] && is_transactional=1
+else
+    [[ -z $is_transactional ]] && is_transactional=0
+fi
+
 [[ -z $phpfpm ]] && phpfpm="php-fpm"
 [[ -z $webredirect ]] && webredirect="${webdirdest}/index.php"
 [[ -z $apacheuser ]] && apacheuser="wwwrun"
@@ -69,6 +78,6 @@ fi
 [[ -z $dhcpconfigother ]] && dhcpconfigother="/etc/dhcp/dhcpd.conf"
 [[ -z $tftpdirdst ]] && tftpdirdst="/srv/tftpboot"
 [[ -z $tftpconfig ]] && tftpconfig="/etc/xinetd.d/tftp"
-[[ -z $ftpconfig ]] && ftpconfig="/etc/vsftpd/vsftpd.conf"
+[[ -z $ftpconfig ]] && ftpconfig="/etc/vsftpd.conf"
 [[ -z $dhcp ]] && dhcpd="dhcpd"
 [[ -z $snapindir ]] && snapindir="/opt/fog/snapins"
