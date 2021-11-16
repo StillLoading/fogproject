@@ -26,7 +26,7 @@ case $linuxReleaseName in
     *)
         [[ -z $etcconf ]] && etcconf="/etc/apache2/vhosts.d/fog.conf"
         [[ -z $packages ]] && {
-                packages="curl dhcp-server gcc gcc-c++ mkisofs git gzip apache2 apache2-event apache2-mod_fcgid apache2-worker lftp m4 make mtools mariadb-client mariadb net-tools nfs-kernel-server php${php_ver} php${php_ver}-fastcgi php${php_ver}-openssl php${php_ver}-fpm php${php_ver}-gd php${php_ver}-json php${php_ver}-ldap php${php_ver}-mbstring php${php_ver}-mysql php${php_ver}-pcntl php${php_ver}-gettext php${php_ver}-curl php${php_ver}-ftp syslinux tar tftp vsftpd wget xinetd xz-devel"
+                packages="curl dhcp-server gcc gcc-c++ mkisofs git gzip apache2 apache2-event apache2-mod_fcgid apache2-worker lftp m4 make mtools mariadb-client mariadb net-tools nfs-kernel-server php${php_ver} php${php_ver}-fastcgi php${php_ver}-openssl php${php_ver}-fpm php${php_ver}-gd php${php_ver}-json php${php_ver}-ldap php${php_ver}-mbstring php${php_ver}-mysql php${php_ver}-pcntl php${php_ver}-gettext php${php_ver}-curl php${php_ver}-ftp php${php_ver}-sockets syslinux tar tftp vsftpd wget xinetd xz-devel"
         }
         command -v dnf >>$workingdir/error_logs/fog_error_${version}.log 2>&1
         if [[ $? -eq 0 ]]; then
