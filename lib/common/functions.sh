@@ -1067,9 +1067,6 @@ enableInitScript() {
     for serviceItem in $serviceList; do
         case $systemctl in
             yes)
-                dots "Setting permissions on $serviceItem script"
-                chmod 644 $initdpath/$serviceItem >>$workingdir/error_logs/fog_error_${version}.log 2>&1
-                errorStat $?
                 dots "Enabling $serviceItem Service"
                 systemctl is-enabled --quiet $serviceItem && true || systemctl enable $serviceItem >>$workingdir/error_logs/fog_error_${version}.log 2>&1
                 if [[ ! $? -eq 0 && $osid -eq 2 ]]; then
@@ -1111,13 +1108,23 @@ enableInitScript() {
 }
 installInitScript() {
     dots "Installing FOG System Scripts"
-    cp -f $initdsrc/* $initdpath/ >>$workingdir/error_logs/fog_error_${version}.log 2>&1
+    # initdpath switcheroo for Read-Only systems
+    if [[ $osid -eq 4 ]] && [[ $is_transactional -eq 1 ]]; then
+        initdpath_tmp="/usr/local/lib/systemd/system"
+        mkdir -p $initdpath_tmp
+    else
+        initdpath_tmp=$initdpath
+    fi
+    cp -f $initdsrc/* $initdpath_tmp/ >>$workingdir/error_logs/fog_error_${version}.log 2>&1
     errorStat $?
     echo
     echo
     echo " * Configuring FOG System Services"
     echo
     echo
+    dots "Setting permissions on $serviceItem script"
+    chmod 644 $initdpath_tmp/$serviceItem >>$workingdir/error_logs/fog_error_${version}.log 2>&1
+    errorStat $?
     enableInitScript
 }
 configureMySql() {
